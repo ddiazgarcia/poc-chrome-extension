@@ -1,12 +1,25 @@
 {
-  "name": "Click sandbox",
+  "name": "PoC Extension",
   "version": "1.0",
-  "description": "A sandbox for plugins",
-  "permissions": ["activeTab", "declarativeContent", "storage"],
+  "description": "A sandbox for extensions",
+  "permissions": [
+    "activeTab",
+    "declarativeContent",
+    "storage",
+    "http://localhost:8080/*"
+  ],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>", "*://*.cedeo.fr/*", "*://cedeo.fr/*"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "js": ["jquery-3.4.1.js", "contentScript.js"]
+    }
+  ],
   "options_page": "options.html",
   "page_action": {
     "default_popup": "popup.html",
