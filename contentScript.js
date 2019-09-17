@@ -2,23 +2,58 @@
 //   console.log("Ajax call done!");
 // });
 
+class ProtocolType {
+  static HTTP = "HTTP";
+  static HTTPS = "HTTPS";
+  static BOTH = "BOTH";
+}
+
+const getProtocols = protocolType => {
+  switch (protocolType) {
+    case ProtocolType.HTTP:
+      return ["http"];
+    case ProtocolType.HTTPS:
+      return ["https"];
+    case ProtocolType.BOTH:
+      return ["http", "https"];
+    default:
+      return [];
+  }
+};
+
+const getUrls = siteList => {
+  const finalRoutes = [];
+  for (const site of siteList) {
+    for (const route of site.routes) {
+      const urlSite = route.routeUrl.toLowerCase();
+      //const aElement = $(`<a href='${url}'></a>`).get();
+      const index = urlSite.indexOf("://");
+      const urlWithoutProtocol = urlSite.substring(index < 0 ? 0 : index + 3);
+      const protocols = getProtocols(route.protocolType);
+      for (const protocol of protocols) {
+        finalRoutes.push(`${protocol}://${urlWithoutProtocol}`);
+        if (!!route.includeWWW && !urlWithoutProtocol.startsWith("www")) {
+          finalRoutes.push(`${protocol}://www.${urlWithoutProtocol}`);
+        }
+      }
+    }
+  }
+  return finalRoutes;
+};
+
 $(document).ready(() => {
-  const url = document.location.href;
-  console.log(`I am at ${url}`);
+  const documentUrl = document.location.href;
+  console.log(`I am at ${documentUrl}`);
 
   $.getJSON("http://localhost:8080/sites", siteList => {
     console.log(siteList);
-    let matched = false;
-    for (const site of siteList) {
-      if (url.startsWith(site.siteUrl)) {
-        console.log(`Site ${url} matched!!!`);
-        matched = true;
-        changePDFLinks();
-        hideLinks();
-      }
-    }
-    if (!matched) {
-      console.log(`Site ${url} not matched`);
+    const urls = getUrls(siteList);
+    if (urls.some(url => documentUrl.startsWith(url))) {
+      console.log(`Site ${documentUrl} matched!!!`);
+      changePDFLinks();
+      hideLinks();
+    } else {
+      console.log(`Site ${documentUrl} not matched`);
     }
   });
 
